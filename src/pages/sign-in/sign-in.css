@@ -1,0 +1,12 @@
+.wrapper {
+  min-height: 100vh;
+}
+
+.wrapper .container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 600px;
+  width: 100%;
+}
