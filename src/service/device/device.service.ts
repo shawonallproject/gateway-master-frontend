@@ -1,31 +1,45 @@
 import axios from 'axios';
 
+import { API_URL } from '../../environment/environment';
+import {
+  CreateDeviceResponse,
+  CreateDeviceInput,
+  GetAllDeviceResponse,
+  GetDeviceByGatewayIdResponse,
+} from '../../types';
+
 const getDevice = () => {
   return {
     queryFn() {
-      return axios.get<any>(``).then(({ data }) => data);
+      return axios
+        .get<GetAllDeviceResponse>(`${API_URL}/device/all`)
+        .then(({ data }) => data);
     },
     queryKey: ['getDevice'],
   };
 };
-const getDeviceById = (id: number) => {
+const getDeviceByGatewayId = (id: string) => {
   return {
     queryFn() {
-      return axios.get<any>(`${id}`).then(({ data }) => data);
+      return axios
+        .get<GetDeviceByGatewayIdResponse>(`${API_URL}/device/gateway/${id}`)
+        .then(({ data }) => data);
     },
-    queryKey: ['getDeviceById', id],
+    queryKey: ['getDeviceByGatewayId', id],
   };
 };
 const createDevice = () => {
   return {
-    mutationFn(input: any) {
-      return axios.post<any>(``, input).then(({ data }) => data);
+    mutationFn(input: CreateDeviceInput) {
+      return axios
+        .post<CreateDeviceResponse>(`${API_URL}/device`, input)
+        .then(({ data }) => data);
     },
   };
 };
 
 export const deviceService = {
   getDevice,
-  getDeviceById,
+  getDeviceByGatewayId,
   createDevice,
 };

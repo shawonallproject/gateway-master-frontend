@@ -12,36 +12,37 @@ import { z } from 'zod';
 import { gatewayService } from '../../service';
 import './GatewayForm.css';
 
-type Props = {};
+type Props = {
+  onClose: () => void;
+};
 
 const schema = z.object({
-  name: z.string().min(2, 'Must be at least 2 characters'),
-  ipAddress: z.string().refine(isIP, {
+  SerialNumber: z.string().min(2, 'Must be at least 2 characters'),
+  Name: z.string().min(2, 'Must be at least 2 characters'),
+  IPV4Address: z.string().refine(isIP, {
     message: 'Please enter a valid IP',
   }),
 });
 
 type FormType = z.infer<typeof schema>;
 
-const GatewayForm = (props: Props) => {
+const GatewayForm = ({ onClose }: Props) => {
   const { register, handleSubmit, formState } = useForm<FormType>({
     resolver: zodResolver(schema),
   });
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isLoading } = useMutation({
     ...gatewayService.createGateway(),
     onSuccess: (data) => {
+      // telling react query to refetch data
       queryClient.invalidateQueries();
+      onClose();
     },
   });
 
   const onSubmit: SubmitHandler<FormType> = (formData) => {
-    console.log(
-      '🚀 ~ file: GatewayForm.tsx:49 ~ GatewayForm ~ formData',
-      formData,
-    );
     toast.promise(mutateAsync(formData), {
       loading: 'Creating Gateway',
       success: 'Successfully Created gateway',
@@ -54,35 +55,49 @@ const GatewayForm = (props: Props) => {
         <Col>
           <Stack as="form" gap={2} onSubmit={handleSubmit(onSubmit)}>
             <Form.Group>
-              <Form.Label htmlFor="name">Name</Form.Label>
+              <Form.Label htmlFor="SerialNumber">Serial Number</Form.Label>
               <Form.Control
-                aria-describedby="name-help"
+                aria-describedby="SerialNumber-help"
                 type="text"
-                id="name"
-                {...register('name')}
+                id="SerialNumber"
+                {...register('SerialNumber')}
               />
-              {formState.errors.name?.message ? (
-                <Form.Text id="name-help" className="text-danger">
-                  {formState.errors.name.message}
+              {formState.errors.SerialNumber?.message ? (
+                <Form.Text id="SerialNumber-help" className="text-danger">
+                  {formState.errors.SerialNumber.message}
                 </Form.Text>
               ) : null}
             </Form.Group>
             <Form.Group>
-              <Form.Label htmlFor="ipAddress">Ip Address</Form.Label>
+              <Form.Label htmlFor="Name">Name</Form.Label>
               <Form.Control
-                aria-describedby="ipAddress-help"
-                type="ipAddress"
-                id="ipAddress"
-                {...register('ipAddress')}
+                aria-describedby="Name-help"
+                type="text"
+                id="Name"
+                {...register('Name')}
               />
-              {formState.errors.ipAddress?.message ? (
-                <Form.Text id="ipAddress-help" className="text-danger">
-                  {formState.errors.ipAddress.message}
+              {formState.errors.Name?.message ? (
+                <Form.Text id="Name-help" className="text-danger">
+                  {formState.errors.Name.message}
                 </Form.Text>
               ) : null}
             </Form.Group>
-            <Button type="submit" className="mt-5">
-              Add
+            <Form.Group>
+              <Form.Label htmlFor="IPV4Address">Ip Address</Form.Label>
+              <Form.Control
+                aria-describedby="IPV4Address-help"
+                type="IPV4Address"
+                id="IPV4Address"
+                {...register('IPV4Address')}
+              />
+              {formState.errors.IPV4Address?.message ? (
+                <Form.Text id="IPV4Address-help" className="text-danger">
+                  {formState.errors.IPV4Address.message}
+                </Form.Text>
+              ) : null}
+            </Form.Group>
+            <Button type="submit" className="mt-5" disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </Stack>
         </Col>
