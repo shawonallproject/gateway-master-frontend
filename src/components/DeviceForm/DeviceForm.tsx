@@ -10,41 +10,47 @@ import { z } from 'zod';
 import { deviceService } from '../../service';
 import './DeviceForm.css';
 
-type Props = {};
+type Props = {
+  gatewayId: string;
+  onClose: () => void;
+};
 
 const Status = ['online', 'offline'] as const;
 
 const schema = z.object({
-  vendor: z.string().min(2, 'Must be at least 2 characters'),
-  dateCreated: z.coerce.date(),
-  status: z.enum(Status),
+  Vendor: z.string().min(2, 'Must be at least 2 characters').optional(),
+  UID: z.coerce.number(),
+  OnlineStatus: z.coerce.boolean(),
 });
 
 type FormType = z.infer<typeof schema>;
 
-const DeviceForm = (props: Props) => {
+const DeviceForm = ({ gatewayId, onClose }: Props) => {
   const { register, handleSubmit, formState } = useForm<FormType>({
     resolver: zodResolver(schema),
   });
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isLoading } = useMutation({
     ...deviceService.createDevice(),
     onSuccess: (data) => {
       // telling react query to refetch data
       queryClient.invalidateQueries();
+      onClose();
     },
   });
 
   const onSubmit: SubmitHandler<FormType> = (formData) => {
-    console.log(
-      '🚀 ~ file: DeviceForm.tsx:49 ~ DeviceForm ~ formData',
-      formData,
+    toast.promise(
+      mutateAsync({
+        ...formData,
+        Gateway: gatewayId,
+      }),
+      {
+        loading: 'Creating Device',
+        success: 'Successfully Created device',
+        error: 'Error While creating device',
+      },
     );
-    toast.promise(mutateAsync(formData), {
-      loading: 'Creating Device',
-      success: 'Successfully Created device',
-      error: 'Error While creating device',
-    });
   };
   return (
     <Container className="container-form pt-4" fluid>
@@ -52,54 +58,57 @@ const DeviceForm = (props: Props) => {
         <Col>
           <Stack as="form" gap={2} onSubmit={handleSubmit(onSubmit)}>
             <Form.Group>
-              <Form.Label htmlFor="vendor">Name</Form.Label>
+              <Form.Label htmlFor="Vendor">Vendor</Form.Label>
               <Form.Control
-                aria-describedby="vendor-help"
+                aria-describedby="Vendor-help"
                 type="text"
-                id="vendor"
-                {...register('vendor')}
+                id="Vendor"
+                {...register('Vendor')}
               />
-              {formState.errors.vendor?.message ? (
-                <Form.Text id="vendor-help" className="text-danger">
-                  {formState.errors.vendor.message}
+              {formState.errors.Vendor?.message ? (
+                <Form.Text id="Vendor-help" className="text-danger">
+                  {formState.errors.Vendor.message}
                 </Form.Text>
               ) : null}
             </Form.Group>
             <Form.Group>
-              <Form.Label htmlFor="dateCreated">Date Created</Form.Label>
+              <Form.Label htmlFor="UID">UID</Form.Label>
               <Form.Control
-                aria-describedby="dateCreated-help"
-                type="date"
-                id="dateCreated"
-                {...register('dateCreated')}
+                aria-describedby="UID-help"
+                type="number"
+                id="UID"
+                {...register('UID')}
               />
-              {formState.errors.dateCreated?.message ? (
-                <Form.Text id="dateCreated-help" className="text-danger">
-                  {formState.errors.dateCreated.message}
+              {formState.errors.UID?.message ? (
+                <Form.Text id="UID-help" className="text-danger">
+                  {formState.errors.UID.message}
                 </Form.Text>
               ) : null}
             </Form.Group>
             <Form.Group>
-              <Form.Label htmlFor="status">Status</Form.Label>
+              <Form.Label htmlFor="OnlineStatus">Status</Form.Label>
               <Form.Select
-                aria-describedby="status-help"
-                id="status"
-                {...register('status')}
+                aria-describedby="OnlineStatus-help"
+                id="OnlineStatus"
+                {...register('OnlineStatus')}
               >
                 {Status.map((datum) => (
-                  <option value={datum} key={datum}>
+                  <option
+                    value={datum === 'online' ? 'true' : 'false'}
+                    key={datum}
+                  >
                     {datum.toUpperCase()}
                   </option>
                 ))}
               </Form.Select>
-              {formState.errors.status?.message ? (
-                <Form.Text id="status-help" className="text-danger">
-                  {formState.errors.status.message}
+              {formState.errors.OnlineStatus?.message ? (
+                <Form.Text id="OnlineStatus-help" className="text-danger">
+                  {formState.errors.OnlineStatus.message}
                 </Form.Text>
               ) : null}
             </Form.Group>
             <Button type="submit" className="mt-5">
-              Add
+              {isLoading ? 'Saving' : 'Save'}
             </Button>
           </Stack>
         </Col>

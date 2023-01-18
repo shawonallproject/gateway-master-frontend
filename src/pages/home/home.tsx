@@ -20,10 +20,9 @@ export const Index = (props: Props) => {
   const { data } = useQuery({
     ...gatewayService.getGateway(),
     // when true will fetch data
-    enabled: false,
   });
 
-  const goToGatewayPage = (id: number) => {
+  const goToGatewayPage = (id: string) => {
     history.push(`/gateway/${id}`);
   };
   return (
@@ -37,32 +36,31 @@ export const Index = (props: Props) => {
           <h3>Gateway</h3>
           <Button onClick={handleShow}>Add New</Button>
         </Stack>
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Serial Number</th>
-              <th> Name</th>
-              <th>IPv4 Address</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr onClick={() => goToGatewayPage(1)}>
-              <td>1</td>
-              <td>Mark</td>
-              <td>Otto</td>
-            </tr>
-            <tr onClick={() => goToGatewayPage(2)}>
-              <td>2</td>
-              <td>Jacob</td>
-              <td>Thornton</td>
-            </tr>
-            <tr onClick={() => goToGatewayPage(3)}>
-              <td>3</td>
-              <td>Larry the Bird</td>
-              <td>@twitter</td>
-            </tr>
-          </tbody>
-        </Table>
+        {data?.data != null ? (
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Serial Number</th>
+                <th> Name</th>
+                <th>IPv4 Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.data.map((datum) => (
+                <tr
+                  tabIndex={0}
+                  onClick={() => goToGatewayPage(datum._id)}
+                  key={datum._id}
+                  role="button"
+                >
+                  <td>{datum.SerialNumber}</td>
+                  <td>{datum.Name}</td>
+                  <td>{datum.IPV4Address}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : null}
       </Container>
       <Modal
         title="Add Gateway"
@@ -71,7 +69,7 @@ export const Index = (props: Props) => {
         animation
         size="lg"
       >
-        <GatewayForm />
+        <GatewayForm onClose={handleClose} />
       </Modal>
     </div>
   );

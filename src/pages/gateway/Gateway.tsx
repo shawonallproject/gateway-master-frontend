@@ -16,15 +16,15 @@ const Gateway = () => {
   const handleShow = () => setShowModal(true);
 
   const { data: gatewayData } = useQuery({
-    ...gatewayService.getGatewayById(Number(id)),
+    ...gatewayService.getGatewayById(id),
     // when true will fetch data
-    enabled: false && id != null,
+    enabled: id != null,
   });
 
   const { data: deviceData } = useQuery({
-    ...deviceService.getDevice(),
+    ...deviceService.getDeviceByGatewayId(id),
     // when true will fetch data
-    enabled: false,
+    enabled: id != null,
   });
 
   return (
@@ -35,7 +35,7 @@ const Gateway = () => {
           direction="horizontal"
           className="justify-content-between m-3 mr-0 align-items-center"
         >
-          <h3>Gateway {id}</h3>
+          <h3>Gateway: {gatewayData?.data.Name}</h3>
           <Button onClick={handleShow}>Add New Device</Button>
         </Stack>
 
@@ -43,42 +43,36 @@ const Gateway = () => {
           <thead>
             <tr>
               <th>Serial Number</th>
-              <th> Vendor</th>
-              <th>Date Created</th>
+              <th>Vendor</th>
               <th>Status</th>
+              <th>UID</th>
+              <th>Date Created</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Mark</td>
-              <td>Otto</td>
-              <td>Online</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Jacob</td>
-              <td>Thornton</td>
-              <td>Online</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>Larry the Bird</td>
-              <td>@twitter</td>
-              <td>Online</td>
-            </tr>
+            {deviceData?.data.map((datum) => (
+              <tr key={datum._id}>
+                <th>{datum.UID}</th>
+                <th>{datum.Vendor}</th>
+                <th>{datum.OnlineStatus === true ? 'Online' : 'Offline'}</th>
+                <th>{datum.UID}</th>
+                <th>{new Date(datum.createdAt).toLocaleDateString()}</th>
+              </tr>
+            ))}
           </tbody>
         </Table>
       </Container>
-      <Modal
-        title="Add Device"
-        show={showModal}
-        onHide={handleClose}
-        animation
-        size="lg"
-      >
-        <DeviceForm />
-      </Modal>
+      {gatewayData != null ? (
+        <Modal
+          title="Add Device"
+          show={showModal}
+          onHide={handleClose}
+          animation
+          size="lg"
+        >
+          <DeviceForm gatewayId={gatewayData?.data._id} onClose={handleClose} />
+        </Modal>
+      ) : null}
     </div>
   );
 };
