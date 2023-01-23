@@ -5,10 +5,19 @@
 
 ### Project setup
 ```
-yarn install
+npm install
 ```
 
-### Run
+### Run Develoment Mode
 ```
-yarn start
+npm run dev
+```
+
+### Build
+```
+npm run build
+```
+### Run Production Mode
+```
+npm run preview
 ```
